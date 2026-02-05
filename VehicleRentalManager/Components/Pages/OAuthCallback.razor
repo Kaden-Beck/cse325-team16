@@ -1,0 +1,143 @@
+@page "/oauth-callback"
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.WebUtilities
+@using Blazored.LocalStorage
+@using System.Net.Http.Json
+@using VehicleRentalManager.Services
+@using VehicleRentalManager.Models
+@inject NavigationManager Navigation
+@inject IAuthService AuthService
+@inject HttpClient HttpClient
+@inject ILocalStorageService LocalStorage
+
+<PageTitle>Authenticating - VehicleRentalManager</PageTitle>
+
+<link rel="stylesheet" href="css/oauth-callback.css" />
+
+<div class="callback-container">
+    <div class="callback-card">
+        @if (string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="spinner-large"></div>
+            <h2>Authenticating...</h2>
+            <p>Please wait while we complete your sign-in</p>
+        }
+        else
+        {
+            <svg class="error-icon" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <h2>Authentication Failed</h2>
+            <p class="error-text">@errorMessage</p>
+            <button @onclick="ReturnToAuth" class="retry-btn">Return to Authentication</button>
+        }
+    </div>
+</div>
+
+@code {
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+            var queryParams = QueryHelpers.ParseQuery(uri.Query);
+
+            // Check for OAuth error
+            if (queryParams.TryGetValue("error", out var error))
+            {
+                errorMessage = $"Authentication failed: {error}";
+                return;
+            }
+
+            // Get authorization code and state
+            if (!queryParams.TryGetValue("code", out var code))
+            {
+                errorMessage = "No authorization code received from Google";
+                return;
+            }
+
+            if (!queryParams.TryGetValue("state", out var state))
+            {
+                errorMessage = "No state parameter received";
+                return;
+            }
+
+            // Validate state parameter (CSRF protection)
+            var storedState = await LocalStorage.GetItemAsync<string>("oauth_state");
+            if (string.IsNullOrEmpty(storedState) || storedState != state.ToString())
+            {
+                errorMessage = "Invalid state parameter. Possible CSRF attack.";
+                return;
+            }
+
+            // Clear stored state
+            await LocalStorage.RemoveItemAsync("oauth_state");
+
+            // Parse state to determine action (register or login)
+            var stateParts = state.ToString().Split('|');
+            var action = stateParts.Length > 0 ? stateParts[0] : "login";
+
+            // Send code and action to backend API
+            var response = await HttpClient.PostAsJsonAsync("/api/auth/oauth-callback", 
+                new OAuthCallbackRequest 
+                { 
+                    Code = code.ToString(), 
+                    Action = action 
+                });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                errorMessage = errorContent;
+                return;
+            }
+
+            // Get authentication response
+            var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+
+            if (result == null || string.IsNullOrEmpty(result.Token))
+            {
+                errorMessage = "Authentication succeeded but no token received";
+                return;
+            }
+
+            // Store the JWT token
+            await LocalStorage.SetItemAsync("authToken", result.Token);
+
+            // Navigate to dashboard
+            await Task.Delay(500); // Small delay for better UX
+            Navigation.NavigateTo("/dashboard", forceLoad: true);
+        }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = "Unable to connect to the server. Please try again.";
+            Console.WriteLine($"HTTP error in OAuth callback: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An unexpected error occurred. Please try again.";
+            Console.WriteLine($"OAuth callback error: {ex.Message}");
+        }
+    }
+
+    private void ReturnToAuth()
+    {
+        Navigation.NavigateTo("/auth");
+    }
+
+    // Request/Response models
+    private class OAuthCallbackRequest
+    {
+        public string Code { get; set; } = string.Empty;
+        public string Action { get; set; } = string.Empty;
+    }
+
+    private class AuthResponse
+    {
+        public string Token { get; set; } = string.Empty;
+        public User User { get; set; } = null!;
+    }
+}
