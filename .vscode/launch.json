@@ -12,11 +12,12 @@
             "stopAtEntry": false,
             "envFile": "${workspaceFolder}/.env",
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:7001"
             },
             "serverReadyAction": {
                 "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
-                "uriFormat": "{0}",
+                "uriFormat": "%s",
                 "action": "openExternally"
             }
         },
