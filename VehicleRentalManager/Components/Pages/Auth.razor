@@ -1,0 +1,90 @@
+@page "/auth"
+@inject NavigationManager Navigation
+
+<PageTitle>Authentication</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 text-center">
+
+            @if (Status == "pending_new")
+            {
+                <!-- New user - account just created, waiting for approval -->
+                <div class="card border-warning shadow-sm">
+                    <div class="card-body p-4">
+                        <h4 class="card-title">Account Created!</h4>
+                        <p class="card-text text-muted">
+                            Your account has been created successfully. A manager needs to
+                            approve your access before you can log in. You will be able to
+                            sign in once your account is approved.
+                        </p>
+                        <hr />
+                        <a href="/ExternalLogin?provider=Google&returnUrl=/"
+                           class="btn btn-outline-secondary btn-sm">
+                            Check again
+                        </a>
+                    </div>
+                </div>
+            }
+            else if (Status == "pending")
+            {
+                <!-- Existing user, still not approved -->
+                <div class="card border-warning shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="mb-3" style="font-size: 3rem;">🔒</div>
+                        <h4 class="card-title">Awaiting Approval</h4>
+                        <p class="card-text text-muted">
+                            Your account is still pending manager approval.
+                            Please check back later.
+                        </p>
+                        <hr />
+                        <a href="/ExternalLogin?provider=Google&returnUrl=/"
+                           class="btn btn-outline-secondary btn-sm">
+                            Check again
+                        </a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Default: sign in screen -->
+                <h3 class="mb-4">Sign in</h3>
+
+                @if (Error == "login_failed")
+                {
+                    <div class="alert alert-danger">Login failed. Please try again.</div>
+                }
+                else if (Error == "no_email")
+                {
+                    <div class="alert alert-danger">Could not retrieve your email from Google.</div>
+                }
+                else if (Error == "create_failed")
+                {
+                    <div class="alert alert-danger">Failed to create your account. Please try again.</div>
+                }
+
+                <a href="/ExternalLogin?provider=Google&returnUrl=/"
+                   class="btn btn-outline-dark btn-lg w-100">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                         alt="Google" width="20" class="me-2" />
+                    Sign in with Google
+                </a>
+
+                <p> To test using an account with access, sign in with the following credentials: </p>
+                <p> E-mail: cse325vrm@gmail.com </p>
+                <p> Password: VRMcse325! </p>
+            }
+
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Status { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Error { get; set; }
+}

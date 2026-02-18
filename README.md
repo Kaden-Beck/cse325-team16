@@ -10,3 +10,6 @@ TEAM MEMBERS:
 
 ## Trello Board
 [Group 16](https://trello.com/b/NvZAYAhj/cse-325-net-team-project)
+
+## Production Site
+[Azure Site](https://vehiclerentalmanager-hseyb2fehwaxgrfm.canadacentral-01.azurewebsites.net/)
