@@ -1,9 +1,7 @@
 @page "/vehicles"
 @rendermode InteractiveServer
-
 @inject UserService UserService
 @inject AuthService AuthService
-
 @using VehicleRentalManager.Models
 @using VehicleRentalManager.Services
 @inject VehicleService VehicleService
@@ -18,129 +16,177 @@
 {
     <EditForm Model="newVehicle" OnValidSubmit="CreateOrUpdateVehicle">
         <DataAnnotationsValidator />
-        @* <ValidationSummary /> *@
-
         <label for="make">Make</label>
         <InputText id="make" @bind-Value="newVehicle.Make" class="form-control mb-2" />
         <ValidationMessage For="@(() => newVehicle.Make)" />
-
         <label for="model">Model</label>
         <InputText id="model" @bind-Value="newVehicle.Model" class="form-control mb-2" />
         <ValidationMessage For="@(() => newVehicle.Model)" />
-
         <label for="color">Color</label>
         <InputText id="color" @bind-Value="newVehicle.Color" class="form-control mb-2" />
         <ValidationMessage For="@(() => newVehicle.Color)" />
-
         <label for="year">Year</label>
         <InputNumber id="year" @bind-Value="newVehicle.Year" class="form-control mb-2" />
         <ValidationMessage For="@(() => newVehicle.Year)" />
-
         <label for="pricePerDay">Price Per Day</label>
         <InputNumber id="pricePerDay" @bind-Value="newVehicle.PricePerDay" class="form-control mb-2" />
         <ValidationMessage For="@(() => newVehicle.PricePerDay)" />
-
         <label for="licensePlate">License Plate</label>
         <InputText id="licensePlate" @bind-Value="newVehicle.LicensePlate" class="form-control mb-2" />
         <ValidationMessage For="@(() => newVehicle.LicensePlate)" />
-
         <div class="form-check mb-2">
             <InputCheckbox id="isAvailable" @bind-Value="newVehicle.IsAvailable" class="form-check-input" />
             <label for="isAvailable" class="form-check-label">Available</label>
         </div>
-
         <button type="submit" class="btn btn-success">Save</button>
         <button type="button" class="btn btn-secondary" @onclick="CancelForm">Cancel</button>
     </EditForm>
 }
 
+<!-- FILTERS -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <label class="form-label">Search</label>
+        <InputText @bind-Value="searchTerm" class="form-control" placeholder="Make, model, plate..." />
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Status</label>
+        <select class="form-select" @bind="statusFilter">
+            <option value="">All</option>
+            <option value="true">Available</option>
+            <option value="false">Rented</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Year</label>
+        <InputNumber @bind-Value="yearFilter" class="form-control" />
+    </div>
+    <div class="col-md-2 pt-4">
+        <button class="btn btn-outline-secondary" @onclick="ClearFilters">Clear Filters</button>
+    </div>
+    <div class="col-md-3 pt-4">
+        <small>@vehicles.Count(v => MatchesFilter(v)) of @vehicles.Count vehicles</small>
+    </div>
+</div>
 
-
-@if (!vehicles.Any())
+@if (!vehicles.Any(v => MatchesFilter(v)))
 {
-    <p>No vehicles found.</p>
-}
+    <p class="alert alert-info">No vehicles match filters. <button class="btn btn-sm btn-primary"
+                                                                       @onclick="ClearFilters">Clear</button></p>
+    }
 else
-{
-
-
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Make</th>
-                <th>Model</th>
-                <th>Color</th>
-                <th>Year</th>
-                <th>Plate</th>
-                <th>Price/Day</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var v in vehicles)
-            {
+    {
+        <table class="table">
+            <thead>
                 <tr>
-                    <td>@v.Make</td>
-                    <td>@v.Model</td>
-                    <td>@v.Color</td>
-                    <td>@v.Year</td>
-                    <td>@v.LicensePlate</td>
-                    <td>$@v.PricePerDay</td>
-                    <td>
-                        @if (v.IsAvailable)
-                        {
-                            <span style="color:green;">Available</span>
-                        }
-                        else
-                        {
-                            <span style="color:red;">Rented</span>
-                        }
-                    </td>
-
-                    <td>
-                        <button class="btn btn-sm btn-warning" @onclick="() => StartEdit(v)">
-                            Edit
-                        </button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteVehicle(v.Id)">
-                            Delete
-                        </button>
-                    </td>
-
+                    <th>Make</th>
+                    <th>Model</th>
+                    <th>Color</th>
+                    <th>Year</th>
+                    <th>Plate</th>
+                    <th>Price/Day</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
-            }
-        </tbody>
-    </table>
-}
+            </thead>
+            <tbody>
+                @foreach (var v in vehicles.Where(v => MatchesFilter(v)))
+                {
+                    <tr>
+                        <td>@v.Make</td>
+                        <td>@v.Model</td>
+                        <td>@v.Color</td>
+                        <td>@v.Year</td>
+                        <td>@v.LicensePlate</td>
+                        <td>$@v.PricePerDay</td>
+                        <td>
+                            @if (v.IsAvailable)
+                            {
+                                <span class="badge bg-success">Available</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Rented</span>
+                            }
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" @onclick="() => StartEdit(v)">Edit</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteVehicle(v.Id!)">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 
 @code {
     private List<Vehicle> vehicles = new();
+    private string searchTerm = "";
+    private string statusFilter = "";
+    private int? yearFilter;
     private bool showForm = false;
     private Vehicle newVehicle = new();
     private Vehicle? editingVehicle;
-    private EditContext? editContext;
 
     protected override async Task OnInitializedAsync()
     {
-        vehicles = await VehicleService.GetAsync();
+        vehicles = await VehicleService.GetAsync() ?? new();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        StateHasChanged();
+    }
+
+    private bool MatchesFilter(Vehicle v)
+    {
+        // Text filter
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            if (!v.Make.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) &&
+                !v.Model.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) &&
+                !v.Color.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) &&
+                !v.LicensePlate.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+
+        // Status filter
+        if (!string.IsNullOrEmpty(statusFilter))
+        {
+            bool isAvailable = bool.Parse(statusFilter);
+            if (v.IsAvailable != isAvailable)
+                return false;
+        }
+
+        // Year filter
+        if (yearFilter.HasValue && yearFilter != v.Year)
+            return false;
+
+        return true;
+    }
+
+    private void ClearFilters()
+    {
+        searchTerm = "";
+        statusFilter = "";
+        yearFilter = null;
+        StateHasChanged();
     }
 
     private void ShowCreateForm()
     {
         newVehicle = new Vehicle { IsAvailable = true };
-        editContext = new EditContext(newVehicle);
         showForm = true;
     }
 
     private void CancelForm()
     {
         showForm = false;
+        newVehicle = new();
     }
 
     private void StartEdit(Vehicle vehicle)
     {
-        editingVehicle = vehicle;
         newVehicle = new Vehicle
         {
             Id = vehicle.Id,
@@ -166,13 +212,15 @@ else
             await VehicleService.UpdateAsync(newVehicle.Id, newVehicle);
         }
 
-        vehicles = await VehicleService.GetAsync();
+        vehicles = await VehicleService.GetAsync() ?? new();
         showForm = false;
+        StateHasChanged();
     }
 
     private async Task DeleteVehicle(string id)
     {
         await VehicleService.DeleteAsync(id);
-        vehicles = await VehicleService.GetAsync();
+        vehicles = await VehicleService.GetAsync() ?? new();
+        StateHasChanged();
     }
 }
