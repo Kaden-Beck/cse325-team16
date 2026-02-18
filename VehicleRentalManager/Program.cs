@@ -19,14 +19,14 @@ builder.Services.AddRazorPages();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddSingleton<MongoContext>();
-builder.Services.AddSingleton<VehicleService>();
-// builder.Services.AddControllers();
-builder.Services.AddScoped<VehicleService>();
-builder.Services.AddControllers();
 // ── MongoDB services ──────────────────────────────────────────────────────────
 builder.Services.AddSingleton<MongoDbService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddSingleton<MongoContext>();
+builder.Services.AddSingleton<VehicleService>();
+builder.Services.AddScoped<VehicleService>();
+builder.Services.AddSingleton<ClientService>();
+builder.Services.AddControllers();
 
 // ── JWT + Auth services ───────────────────────────────────────────────────────
 builder.Services.AddScoped<IJwtService, JwtService>();
