@@ -26,6 +26,7 @@ builder.Services.AddSingleton<MongoContext>();
 builder.Services.AddSingleton<VehicleService>();
 builder.Services.AddScoped<VehicleService>();
 builder.Services.AddSingleton<ClientService>();
+builder.Services.AddScoped<ReservationService>();
 builder.Services.AddControllers();
 
 // ── JWT + Auth services ───────────────────────────────────────────────────────
