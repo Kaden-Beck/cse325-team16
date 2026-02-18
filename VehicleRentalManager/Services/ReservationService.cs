@@ -3,18 +3,29 @@ using VehicleRentalManager.Models;
 
 namespace VehicleRentalManager.Services;
 
-public class ReservationService
+public class ReservationService : IReservationService
 {
     private readonly IMongoCollection<Reservation> _reservations;
-    private readonly ClientService _clientService;
-    private readonly VehicleService _vehicleService;
+    private readonly IClientService _clientService;
+    private readonly IVehicleService _vehicleService;
 
     public ReservationService(
         MongoDbService mongoDbService,
-        ClientService clientService,
-        VehicleService vehicleService)
+        IClientService clientService,
+        IVehicleService vehicleService)
+        : this(
+            mongoDbService.GetCollection<Reservation>("reservations"),
+            clientService,
+            vehicleService)
     {
-        _reservations = mongoDbService.GetCollection<Reservation>("reservations");
+    }
+
+    public ReservationService(
+        IMongoCollection<Reservation> reservations,
+        IClientService clientService,
+        IVehicleService vehicleService)
+    {
+        _reservations = reservations;
         _clientService = clientService;
         _vehicleService = vehicleService;
     }

@@ -3,7 +3,7 @@ using VehicleRentalManager.Models;
 
 namespace VehicleRentalManager.Services;
 
-public class UserService
+public class UserService : IUserService
 {
     private readonly IMongoCollection<AppUser> _users;
 

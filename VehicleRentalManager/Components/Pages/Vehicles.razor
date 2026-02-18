@@ -6,7 +6,7 @@
 @inject NavigationManager Navigation
 @using VehicleRentalManager.Models
 @using VehicleRentalManager.Services
-@inject VehicleService VehicleService
+@inject IVehicleService VehicleService
 
 <h3>Vehicles</h3>
 
@@ -108,7 +108,7 @@ else
                             }
                             else
                             {
-                                <span class="badge bg-danger">Rented</span>
+                                <span class="badge bg-danger">Unavailable</span>
                             }
                         </td>
                         <td>

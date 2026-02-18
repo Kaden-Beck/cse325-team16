@@ -1,9 +1,9 @@
 @page "/reservations"
 // Required for dynamic UI updates (wizard steps) and event handling.
 @rendermode InteractiveServer
-@inject ReservationService ReservationService
-@inject ClientService ClientService
-@inject VehicleService VehicleService
+@inject IReservationService ReservationService
+@inject IClientService ClientService
+@inject IVehicleService VehicleService
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 @using VehicleRentalManager.Models

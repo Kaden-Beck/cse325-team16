@@ -3,13 +3,18 @@ using VehicleRentalManager.Models;
 
 namespace VehicleRentalManager.Services;
 
-public class ClientService
+public class ClientService : IClientService
 {
     private readonly IMongoCollection<Client> _clients;
 
-    public ClientService(MongoDbService mongoDbService)
+    public ClientService(IMongoCollection<Client> clients)
     {
-        _clients = mongoDbService.GetCollection<Client>("clients");
+        _clients = clients;
+    }
+
+    public ClientService(MongoDbService mongoDbService)
+        : this(mongoDbService.GetCollection<Client>("clients"))
+    {
     }
 
     public async Task<List<Client>> GetAsync()

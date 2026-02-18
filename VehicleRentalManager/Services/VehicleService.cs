@@ -3,7 +3,7 @@ using VehicleRentalManager.Models;
 
 namespace VehicleRentalManager.Services;
 
-public class VehicleService
+public class VehicleService : IVehicleService
 {
     private readonly IMongoCollection<Vehicle> _vehicles;
 
