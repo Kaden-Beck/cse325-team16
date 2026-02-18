@@ -1,7 +1,46 @@
 ﻿@page "/"
+@inject NavigationManager Navigation
+@inject AuthService AuthService
+@using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<AuthorizeView>
+    <Authorized>
+        <div class="container mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="mb-0">Welcome, @(userName ?? "User")!</h1>
+                <div class="d-flex gap-2">
+                    <a href="/admin/approvals" class="btn btn-outline-primary btn-sm">
+                        Manage Users
+                    </a>
+                    <a href="/auth/logout-redirect" class="btn btn-outline-secondary">
+                        Sign out
+                    </a>
+                </div>
+            </div>
+            <p class="lead">You are signed in to Vehicle Rental Manager.</p>
+        </div>
+    </Authorized>
 
-Welcome to your new app.
+    <NotAuthorized>
+        <div class="container mt-5 text-center">
+            <p class="text-muted">Redirecting to sign in...</p>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private string? userName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await AuthService.GetCurrentUserAsync();
+        if (!user.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/auth");
+            return;
+        }
+        userName = user.Name;
+    }
+}
