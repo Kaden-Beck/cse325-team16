@@ -6,40 +6,39 @@
 @using VehicleRentalManager.Services
 @rendermode InteractiveServer
 
-<PageTitle>User Approvals</PageTitle>
+<h3>Employees</h3>
 
-<div class="container mt-4">
-
-    @if (!isAuthorized)
-    {
-        <div class="alert alert-danger">You are not authorized to view this page.</div>
-    }
-    else if (isLoading)
-    {
-        <p class="text-muted">Loading users...</p>
-    }
-    else
-    {
-        <!-- Pending Users -->
+@if (!isAuthorized)
+{
+    <div class="alert alert-danger mb-4">You are not authorized to view this page.</div>
+}
+else if (isLoading)
+{
+    <p class="text-muted mb-4">Loading users...</p>
+}
+else
+{
+    <!-- Pending Users -->
+    <div class="mb-4">
         <h5 class="text-warning mb-3">
-            ⏳ Pending Approval
+            Pending Approval
             <span class="badge bg-warning text-dark ms-2">@pendingUsers.Count</span>
         </h5>
 
         @if (pendingUsers.Count == 0)
         {
-            <div class="alert alert-success">No pending users.</div>
+            <div class="alert alert-success mb-0">No pending users.</div>
         }
         else
         {
-            <div class="table-responsive mb-5">
-                <table class="table table-bordered align-middle">
-                    <thead class="table-light">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
                         <tr>
                             <th>Name</th>
                             <th>Email</th>
                             <th>Registered</th>
-                            <th></th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -50,8 +49,7 @@
                                 <td>@user.Email</td>
                                 <td>@user.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
                                 <td>
-                                    <button class="btn btn-success btn-sm"
-                                            @onclick="() => Approve(user.Id!)">
+                                    <button class="btn btn-sm btn-success" @onclick="() => Approve(user.Id!)">
                                         ✓ Approve
                                     </button>
                                 </td>
@@ -59,30 +57,33 @@
                         }
                     </tbody>
                 </table>
+
             </div>
         }
+    </div>
 
-        <!-- Approved Users -->
+    <!-- Approved Users -->
+    <div>
         <h5 class="text-success mb-3">
-            ✓ Approved Users
+            Approved Employees
             <span class="badge bg-success ms-2">@approvedUsers.Count</span>
         </h5>
 
         @if (approvedUsers.Count == 0)
         {
-            <div class="alert alert-secondary">No approved users yet.</div>
+            <div class="alert alert-secondary mb-0">No approved users yet.</div>
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-bordered align-middle">
-                    <thead class="table-light">
+                <table class="table">
+                    <thead>
                         <tr>
                             <th>Name</th>
                             <th>Email</th>
                             <th>Registered</th>
                             <th>Last Login</th>
-                            <th></th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -93,27 +94,27 @@
                                 <td>@user.Email</td>
                                 <td>@user.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
                                 <td>@(user.LastLoginAt.HasValue
-                                        ? user.LastLoginAt.Value.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
-                                        : "—")</td>
-                                <td>
-                                    <button class="btn btn-outline-danger btn-sm"
-                                            @onclick="() => Revoke(user.Id!)">
-                                        ✕ Revoke
-                                    </button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
+                                                            ? user.LastLoginAt.Value.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
+                                                        : "—")</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger"                            @onclick="() => Revoke(user.Id!)">
+                                            ✕ Revoke
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                </div>
+            }
+        </div>
     }
-</div>
 
 @code {
-    private List<AppUser> pendingUsers  = [];
+    private List<AppUser> pendingUsers = [];
     private List<AppUser> approvedUsers = [];
-    private bool isLoading    = true;
+    private bool isLoading = true;
     private bool isAuthorized = false;
 
     protected override async Task OnInitializedAsync()
@@ -133,8 +134,8 @@
     {
         isLoading = true;
         var all = await UserService.GetAllAsync();
-        pendingUsers  = all.Where(u => !u.IsApproved).ToList();
-        approvedUsers = all.Where(u =>  u.IsApproved).ToList();
+        pendingUsers = all.Where(u => !u.IsApproved).ToList();
+        approvedUsers = all.Where(u => u.IsApproved).ToList();
         isLoading = false;
     }
 

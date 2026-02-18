@@ -3,25 +3,18 @@
 @inject AuthService AuthService
 @using Microsoft.AspNetCore.Components.Authorization
 
-<PageTitle>Home</PageTitle>
+<h3>Home</h3>
 
 <AuthorizeView>
     <Authorized>
-        <div class="container mt-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="mb-0">Welcome, @(userName ?? "User")!</h1>
-                <div class="d-flex gap-2">
-                    <a href="/auth/logout-redirect" class="btn btn-outline-secondary">
-                        Sign out
-                    </a>
-                </div>
-            </div>
-            <p class="lead">You are signed in to Vehicle Rental Manager.</p>
+        <div class="mb-1">
+            <h4 class="mb-1">Welcome, @(userName ?? "User")!</h4>
         </div>
+        <p class="lead mb-0">You are signed in to Vehicle Rental Manager.</p>
     </Authorized>
 
     <NotAuthorized>
-        <div class="container mt-5 text-center">
+        <div class="mt-5 text-center">
             <p class="text-muted">Redirecting to sign in...</p>
         </div>
     </NotAuthorized>
