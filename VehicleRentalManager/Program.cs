@@ -9,8 +9,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddSingleton<MongoContext>();
-builder.Services.AddScoped<VehicleService>();
-builder.Services.AddControllers();
+builder.Services.AddSingleton<VehicleService>();
+// builder.Services.AddControllers();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
