@@ -20,6 +20,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddSingleton<MongoContext>();
+builder.Services.AddSingleton<VehicleService>();
+// builder.Services.AddControllers();
 builder.Services.AddScoped<VehicleService>();
 builder.Services.AddControllers();
 // ── MongoDB services ──────────────────────────────────────────────────────────

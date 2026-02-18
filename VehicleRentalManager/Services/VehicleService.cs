@@ -1,6 +1,7 @@
-namespace VehicleRentalManager.Services;
 using MongoDB.Driver;
 using VehicleRentalManager.Models;
+
+namespace VehicleRentalManager.Services;
 
 public class VehicleService
 {
@@ -11,9 +12,34 @@ public class VehicleService
         _vehicles = context.Database.GetCollection<Vehicle>("Vehicle");
     }
 
-    public Task<List<Vehicle>> GetAllAsync()
-        => _vehicles.Find(_ => true).ToListAsync();
+    public async Task<List<Vehicle>> GetAllAsync()
+    {
+        return await _vehicles.Find(_ => true).ToListAsync();
+    }
+    public async Task<List<Vehicle>> GetAsync()
+    {
+        return await _vehicles.Find(_ => true).ToListAsync();
+    }
 
-    // public Task CreateAsync(Vehicle v)
-    //     => _vehicles.InsertOneAsync(v);
+
+    public async Task CreateAsync(Vehicle vehicle)
+    {
+        await _vehicles.InsertOneAsync(vehicle);
+    }
+
+    public async Task DeleteAsync(string id)
+    {
+        await _vehicles.DeleteOneAsync(v => v.Id == id);
+    }
+
+    public async Task<Vehicle> GetByIdAsync(string id)
+    {
+        return await _vehicles.Find(v => v.Id == id).FirstOrDefaultAsync();
+    }
+
+    public async Task UpdateAsync(string id, Vehicle vehicle)
+    {
+        await _vehicles.ReplaceOneAsync(v => v.Id == id, vehicle);
+    }
+
 }

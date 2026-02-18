@@ -1,0 +1,174 @@
+@page "/vehicles"
+@rendermode InteractiveServer
+@using VehicleRentalManager.Models
+@using VehicleRentalManager.Services
+@inject VehicleService VehicleService
+
+<h3>Vehicles</h3>
+
+<button type="button" class="btn btn-primary mb-3" @onclick="ShowCreateForm">
+    Create New Vehicle
+</button>
+
+@if (showForm)
+{
+    <EditForm Model="newVehicle" OnValidSubmit="CreateOrUpdateVehicle">
+        <DataAnnotationsValidator />
+        @* <ValidationSummary /> *@
+
+        <label for="make">Make</label>
+        <InputText id="make" @bind-Value="newVehicle.Make" class="form-control mb-2" />
+        <ValidationMessage For="@(() => newVehicle.Make)" />
+
+        <label for="model">Model</label>
+        <InputText id="model" @bind-Value="newVehicle.Model" class="form-control mb-2" />
+        <ValidationMessage For="@(() => newVehicle.Model)" />
+
+        <label for="color">Color</label>
+        <InputText id="color" @bind-Value="newVehicle.Color" class="form-control mb-2" />
+        <ValidationMessage For="@(() => newVehicle.Color)" />
+
+        <label for="year">Year</label>
+        <InputNumber id="year" @bind-Value="newVehicle.Year" class="form-control mb-2" />
+        <ValidationMessage For="@(() => newVehicle.Year)" />
+
+        <label for="pricePerDay">Price Per Day</label>
+        <InputNumber id="pricePerDay" @bind-Value="newVehicle.PricePerDay" class="form-control mb-2" />
+        <ValidationMessage For="@(() => newVehicle.PricePerDay)" />
+
+        <label for="licensePlate">License Plate</label>
+        <InputText id="licensePlate" @bind-Value="newVehicle.LicensePlate" class="form-control mb-2" />
+        <ValidationMessage For="@(() => newVehicle.LicensePlate)" />
+
+        <div class="form-check mb-2">
+            <InputCheckbox id="isAvailable" @bind-Value="newVehicle.IsAvailable" class="form-check-input" />
+            <label for="isAvailable" class="form-check-label">Available</label>
+        </div>
+
+        <button type="submit" class="btn btn-success">Save</button>
+        <button type="button" class="btn btn-secondary" @onclick="CancelForm">Cancel</button>
+    </EditForm>
+}
+
+
+
+@if (!vehicles.Any())
+{
+    <p>No vehicles found.</p>
+}
+else
+{
+
+
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Make</th>
+                <th>Model</th>
+                <th>Color</th>
+                <th>Year</th>
+                <th>Plate</th>
+                <th>Price/Day</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var v in vehicles)
+            {
+                <tr>
+                    <td>@v.Make</td>
+                    <td>@v.Model</td>
+                    <td>@v.Color</td>
+                    <td>@v.Year</td>
+                    <td>@v.LicensePlate</td>
+                    <td>$@v.PricePerDay</td>
+                    <td>
+                        @if (v.IsAvailable)
+                        {
+                            <span style="color:green;">Available</span>
+                        }
+                        else
+                        {
+                            <span style="color:red;">Rented</span>
+                        }
+                    </td>
+
+                    <td>
+                        <button class="btn btn-sm btn-warning" @onclick="() => StartEdit(v)">
+                            Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteVehicle(v.Id)">
+                            Delete
+                        </button>
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Vehicle> vehicles = new();
+    private bool showForm = false;
+    private Vehicle newVehicle = new();
+    private Vehicle? editingVehicle;
+    private EditContext? editContext;
+
+    protected override async Task OnInitializedAsync()
+    {
+        vehicles = await VehicleService.GetAsync();
+    }
+
+    private void ShowCreateForm()
+    {
+        newVehicle = new Vehicle { IsAvailable = true };
+        editContext = new EditContext(newVehicle);
+        showForm = true;
+    }
+
+    private void CancelForm()
+    {
+        showForm = false;
+    }
+
+    private void StartEdit(Vehicle vehicle)
+    {
+        editingVehicle = vehicle;
+        newVehicle = new Vehicle
+        {
+            Id = vehicle.Id,
+            Make = vehicle.Make,
+            Model = vehicle.Model,
+            Color = vehicle.Color,
+            Year = vehicle.Year,
+            LicensePlate = vehicle.LicensePlate,
+            PricePerDay = vehicle.PricePerDay,
+            IsAvailable = vehicle.IsAvailable
+        };
+        showForm = true;
+    }
+
+    private async Task CreateOrUpdateVehicle()
+    {
+        if (string.IsNullOrEmpty(newVehicle.Id))
+        {
+            await VehicleService.CreateAsync(newVehicle);
+        }
+        else
+        {
+            await VehicleService.UpdateAsync(newVehicle.Id, newVehicle);
+        }
+
+        vehicles = await VehicleService.GetAsync();
+        showForm = false;
+    }
+
+    private async Task DeleteVehicle(string id)
+    {
+        await VehicleService.DeleteAsync(id);
+        vehicles = await VehicleService.GetAsync();
+    }
+}
