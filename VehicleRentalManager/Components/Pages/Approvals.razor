@@ -1,0 +1,157 @@
+@page "/admin/approvals"
+@inject UserService UserService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@using VehicleRentalManager.Models
+@using VehicleRentalManager.Services
+@rendermode InteractiveServer
+
+<PageTitle>User Approvals</PageTitle>
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">User Approvals</h2>
+        <a href="/" class="btn btn-outline-secondary btn-sm">← Back to Home</a>
+    </div>
+
+    @if (!isAuthorized)
+    {
+        <div class="alert alert-danger">You are not authorized to view this page.</div>
+    }
+    else if (isLoading)
+    {
+        <p class="text-muted">Loading users...</p>
+    }
+    else
+    {
+        <!-- Pending Users -->
+        <h5 class="text-warning mb-3">
+            ⏳ Pending Approval
+            <span class="badge bg-warning text-dark ms-2">@pendingUsers.Count</span>
+        </h5>
+
+        @if (pendingUsers.Count == 0)
+        {
+            <div class="alert alert-success">No pending users.</div>
+        }
+        else
+        {
+            <div class="table-responsive mb-5">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Registered</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in pendingUsers)
+                        {
+                            <tr>
+                                <td>@user.Name</td>
+                                <td>@user.Email</td>
+                                <td>@user.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                                <td>
+                                    <button class="btn btn-success btn-sm"
+                                            @onclick="() => Approve(user.Id!)">
+                                        ✓ Approve
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <!-- Approved Users -->
+        <h5 class="text-success mb-3">
+            ✓ Approved Users
+            <span class="badge bg-success ms-2">@approvedUsers.Count</span>
+        </h5>
+
+        @if (approvedUsers.Count == 0)
+        {
+            <div class="alert alert-secondary">No approved users yet.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Registered</th>
+                            <th>Last Login</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in approvedUsers)
+                        {
+                            <tr>
+                                <td>@user.Name</td>
+                                <td>@user.Email</td>
+                                <td>@user.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                                <td>@(user.LastLoginAt.HasValue
+                                        ? user.LastLoginAt.Value.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
+                                        : "—")</td>
+                                <td>
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            @onclick="() => Revoke(user.Id!)">
+                                        ✕ Revoke
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<AppUser> pendingUsers  = [];
+    private List<AppUser> approvedUsers = [];
+    private bool isLoading    = true;
+    private bool isAuthorized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var current = await AuthService.GetCurrentUserAsync();
+        if (!current.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/auth");
+            return;
+        }
+
+        isAuthorized = true;
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        isLoading = true;
+        var all = await UserService.GetAllAsync();
+        pendingUsers  = all.Where(u => !u.IsApproved).ToList();
+        approvedUsers = all.Where(u =>  u.IsApproved).ToList();
+        isLoading = false;
+    }
+
+    private async Task Approve(string id)
+    {
+        await UserService.ApproveAsync(id);
+        await LoadUsersAsync();
+    }
+
+    private async Task Revoke(string id)
+    {
+        await UserService.RevokeAsync(id);
+        await LoadUsersAsync();
+    }
+}
