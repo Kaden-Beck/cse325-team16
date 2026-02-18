@@ -1,4 +1,7 @@
-﻿<header>
+﻿@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Authorization
+
+<header>
     <NavLink href="">
         <img src="images/logo.png" alt="Site Logo">
     </NavLink>
@@ -7,14 +10,24 @@
     <nav class="@MenuClass">
         <ul>
             <li>
-                <NavLink href="join">Booking</NavLink>
+                <NavLink href="reservations">Reservations</NavLink>
             </li>
             <li>
-                <NavLink href="resources">Vechicles</NavLink>
+                <NavLink href="vehicles">Vehicles</NavLink>
             </li>
             <li>
                 <NavLink href="resources">Clients</NavLink>
             </li>
+            <li>
+                <NavLink href="approvals">Employees</NavLink>
+            </li>
+            <AuthorizeView>
+            <Authorized>
+            <li>
+                <NavLink href="/auth/logout-redirect">Logout</NavLink>
+            </li>
+            </Authorized>
+        </AuthorizeView>
         </ul>
     </nav>
 </header>
