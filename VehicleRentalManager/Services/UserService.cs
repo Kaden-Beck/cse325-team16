@@ -34,6 +34,7 @@ public class UserService
             Name      = name,
             Email     = email,
             GoogleId  = googleId,
+            // Default to unapproved to prevent unauthorized access immediately after OAuth signup.
             IsApproved = false,
             CreatedAt  = DateTime.UtcNow
         };

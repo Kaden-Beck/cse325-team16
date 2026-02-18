@@ -4,9 +4,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace VehicleRentalManager.Models;
 
+// Represents a customer who can rent vehicles.
 public class Client
 {
     [BsonId]
+    // Store the BSON ObjectId as a string for better compatibility across layers (e.g., JSON serialization).
     [BsonRepresentation(BsonType.ObjectId)]
     public string? Id { get; set; }
 
@@ -27,7 +29,9 @@ public class Client
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    // Tracks the last rental activity, useful for reporting or identifying dormant clients.
     public DateTime? LastRentalDate { get; set; }
 
+    // A soft-delete flag. Instead of deleting clients, we mark them as inactive to preserve historical data.
     public bool IsActive { get; set; } = true;
 }

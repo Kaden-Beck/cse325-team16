@@ -1,4 +1,5 @@
 @page "/clients"
+// Enable interactive rendering to support button clicks and form submissions via SignalR.
 @rendermode InteractiveServer
 @inject ClientService ClientService
 @inject AuthService AuthService
@@ -118,6 +119,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        // Manually check auth state to redirect unauthenticated users,
+        // ensuring the page is protected even if the router allows navigation.
         var user = await AuthService.GetCurrentUserAsync();
         if (!user.IsAuthenticated)
         {
@@ -135,7 +138,8 @@ else
 
     private bool MatchesFilter(Client c)
     {
-        // Text search filter
+        // Perform client-side filtering for responsiveness.
+        // For larger datasets, this should be moved to the database query (Service layer).
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             var term = searchTerm.ToLower();

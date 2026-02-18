@@ -26,7 +26,8 @@ public class ReservationService
             .SortByDescending(r => r.CreatedAt)
             .ToListAsync();
 
-        // Populate client and vehicle data
+        // Perform application-side joins to populate related entities since MongoDB
+        // doesn't support complex relational joins as efficiently or simply as SQL.
         foreach (var reservation in reservations)
         {
             reservation.Client = await _clientService.GetByIdAsync(reservation.ClientId);
@@ -66,6 +67,8 @@ public class ReservationService
 
     public async Task<bool> IsVehicleAvailableAsync(string vehicleId, DateTime startDate, DateTime endDate, string? excludeReservationId = null)
     {
+        // Check for any active reservation that overlaps with the requested date range.
+        // Overlap logic covers: start inside, end inside, or enveloping the requested range.
         var filter = Builders<Reservation>.Filter.And(
             Builders<Reservation>.Filter.Eq(r => r.VehicleId, vehicleId),
             Builders<Reservation>.Filter.Eq(r => r.Status, ReservationStatus.Active),
@@ -102,10 +105,11 @@ public class ReservationService
 
     public async Task CreateAsync(Reservation reservation)
     {
+        // Set creation time server-side to ensure audit trail integrity.
         reservation.CreatedAt = DateTime.UtcNow;
         await _reservations.InsertOneAsync(reservation);
 
-        // Update client's last rental date
+        // Update client's activity log asynchronously to keep the client record fresh.
         await _clientService.UpdateLastRentalDateAsync(reservation.ClientId);
     }
 

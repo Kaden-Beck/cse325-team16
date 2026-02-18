@@ -7,6 +7,7 @@ public class VehicleService
 {
     private readonly IMongoCollection<Vehicle> _vehicles;
 
+    // Inject MongoContext to abstract the database connection details.
     public VehicleService(MongoContext context)
     {
         _vehicles = context.Database.GetCollection<Vehicle>("Vehicle");

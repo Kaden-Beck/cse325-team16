@@ -1,4 +1,5 @@
 @page "/reservations"
+// Required for dynamic UI updates (wizard steps) and event handling.
 @rendermode InteractiveServer
 @inject ReservationService ReservationService
 @inject ClientService ClientService
@@ -249,6 +250,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        // Enforce authentication guard.
         var user = await AuthService.GetCurrentUserAsync();
         if (!user.IsAuthenticated)
         {
@@ -333,7 +335,8 @@ else
             CreatedAt = reservation.CreatedAt
         };
 
-        // Load available vehicles for the selected dates
+        // Pre-load available vehicles for the existing dates to ensure the current vehicle
+        // is valid and to allow the user to swap vehicles immediately.
         isLoadingVehicles = true;
         formStep = 2;
         showForm = true;
@@ -343,7 +346,8 @@ else
             newReservation.StartDate,
             newReservation.EndDate);
 
-        // Add the currently selected vehicle if it's not in the list
+        // Ensure the currently selected vehicle is in the list even if logic might otherwise exclude it
+        // (e.g., edge cases in availability logic), preserving data integrity for the edit.
         var currentVehicle = await VehicleService.GetByIdAsync(newReservation.VehicleId);
         if (currentVehicle != null && !availableVehicles.Any(v => v.Id == currentVehicle.Id))
         {
@@ -356,6 +360,7 @@ else
 
     private async Task LoadAvailableVehicles()
     {
+        // Prevent unnecessary database calls if the user hasn't selected a client or valid dates.
         if (string.IsNullOrEmpty(newReservation.ClientId))
         {
             return;

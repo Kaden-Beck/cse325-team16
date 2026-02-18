@@ -23,6 +23,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Enforce authentication guard; redirect to login if no valid session exists.
         var user = await AuthService.GetCurrentUserAsync();
         if (!user.IsAuthenticated)
         {

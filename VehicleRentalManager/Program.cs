@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using DotNetEnv;
 
+// Load environment variables from the parent directory to keep secrets separate from the project source.
 DotNetEnv.Env.Load("../.env");
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // ── MongoDB services ──────────────────────────────────────────────────────────
+// Register MongoDBService as Singleton; MongoClient is thread-safe and handles connection pooling internally.
 builder.Services.AddSingleton<MongoDbService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddSingleton<MongoContext>();
@@ -35,6 +37,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddHttpContextAccessor();
 
 // ── Authentication ────────────────────────────────────────────────────────────
+// Configure dual authentication: Cookies for local persistence, Google for the external identity challenge.
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme          = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -43,9 +46,11 @@ builder.Services.AddAuthentication(options =>
 .AddCookie()
 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {
+    // Fail fast if configuration is missing to prevent runtime surprises.
     var secretKey = builder.Configuration["Jwt:SecretKey"]
         ?? throw new InvalidOperationException("Jwt:SecretKey not configured.");
 
+    // Enforce strict token validation to prevent spoofing; issuer/audience checks ensure the token is meant for this specific app.
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer           = true,
@@ -60,6 +65,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddGoogle(options =>
 {
+    // Ensure OAuth credentials are present at startup.
     options.ClientId     = builder.Configuration["GoogleOAuth:ClientId"]
         ?? throw new InvalidOperationException("GoogleOAuth:ClientId not configured.");
     options.ClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"]
@@ -70,6 +76,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 // ── Blazor auth state (reads JWT cookie) ──────────────────────────────────────
+// Register the custom provider to propagate the JWT from the HTTP cookie into the Blazor SignalR circuit.
 builder.Services.AddScoped<JwtAuthenticationStateProvider>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider>(
     sp => sp.GetRequiredService<JwtAuthenticationStateProvider>());
@@ -85,12 +92,12 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-app.UseStatusCodePagesWithReExecute("/not-found");
+app.UseStatusCodePagesWithReExecute("/not-found"); // Re-execute pipeline for 404s to keep the URL in the browser address bar.
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ── Logout — must be before UseAntiforgery so it isn't blocked ────────────────
+// Manually handle logout to ensure the custom 'jwt' cookie is deleted, as standard SignOut might miss it.
 app.MapGet("/auth/logout-redirect", (HttpContext ctx) =>
 {
     ctx.Response.Cookies.Append("jwt", "", new CookieOptions
