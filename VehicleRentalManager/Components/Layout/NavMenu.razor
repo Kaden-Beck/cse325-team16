@@ -1,4 +1,8 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Authorization
+
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">VehicleRentalManager</a>
     </div>
@@ -21,7 +25,7 @@
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
+            <NavLink class="nav-link" href="approvals">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Employees
             </NavLink>
         </div>
@@ -30,6 +34,15 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Vehicles
             </NavLink>
         </div>
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <a class="nav-link" href="/auth/logout-redirect">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Logout
+                    </a>
+                </div>
+            </Authorized>
+        </AuthorizeView>
     </nav>
 </div>
 

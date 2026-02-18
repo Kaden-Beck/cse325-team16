@@ -1,4 +1,4 @@
-@page "/admin/approvals"
+@page "/approvals"
 @inject UserService UserService
 @inject AuthService AuthService
 @inject NavigationManager Navigation
@@ -9,11 +9,6 @@
 <PageTitle>User Approvals</PageTitle>
 
 <div class="container mt-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">User Approvals</h2>
-        <a href="/" class="btn btn-outline-secondary btn-sm">← Back to Home</a>
-    </div>
 
     @if (!isAuthorized)
     {
